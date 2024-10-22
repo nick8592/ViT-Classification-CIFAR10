@@ -1,7 +1,8 @@
 import random
+import argparse
 import torch
 import torch.utils
-import torch.utils.data
+from torch.utils.data import DataLoader
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
@@ -17,8 +18,18 @@ def set_seed(num: int):
     random.seed(num)
     np.random.seed(num)
 
+def hyperparameters():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--train_batch_size", type=int, default=4)
+    parser.add_argument("--test_batch_size", type=int, default=4)
+    parser.add_argument("--num_workers", type=int, default=2)
+    args = parser.parse_args()
+    return args
+
 # Load CIFAR-10 dataset
-def dataloader(batch_size: int, num_workers: int) -> torch.utils.data.DataLoader:
+def dataloader(train_batch_size: int, 
+               test_batch_size: int, 
+               num_workers: int) -> DataLoader:
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -28,16 +39,18 @@ def dataloader(batch_size: int, num_workers: int) -> torch.utils.data.DataLoader
 
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                            shuffle=True, num_workers=num_workers)
+    trainloader = DataLoader(trainset, batch_size=train_batch_size,
+                                            shuffle=True, num_workers=num_workers,
+                                            pin_memory=True)
 
     testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                             download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                            shuffle=False, num_workers=num_workers)
+    testloader = DataLoader(testset, batch_size=test_batch_size,
+                                            shuffle=False, num_workers=num_workers,
+                                            pin_memory=True)
     return trainloader, testloader
 
-def loadershow(loader: torch.utils.data.DataLoader):
+def loadershow(loader: DataLoader):
     # get some random images from dataloader
     dataiter = iter(loader)
     images, labels = next(dataiter)
@@ -56,9 +69,10 @@ def loadershow(loader: torch.utils.data.DataLoader):
 
 def main():
     set_seed(1234)
-    BATCH_SIZE = 4
-    NUM_WORKERS = 2
-    trainloader, testloader = dataloader(BATCH_SIZE, NUM_WORKERS)
+    args = hyperparameters()
+    trainloader, testloader = dataloader(args.train_batch_size,
+                                         args.test_batch_size, 
+                                         args.num_workers)
     loadershow(trainloader)
 
 if __name__ == "__main__":
