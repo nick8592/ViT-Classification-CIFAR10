@@ -56,11 +56,6 @@ def loadershow(loader):
     plt.imshow(np.transpose(grid_images, (1, 2, 0))) # (c, h, w) -> (h, w, c)
     plt.show()
 
-#TODO Patch Embedding
-#TODO Positional Encoding
-#TODO Transformer Encoder
-#TODO Classification Head
-
 def main():
     set_seed(1234)
     trainloader, testloader = dataloader()
