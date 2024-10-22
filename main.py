@@ -18,7 +18,7 @@ def set_seed(num: int):
     np.random.seed(num)
 
 # Load CIFAR-10 dataset
-def dataloader():
+def dataloader(batch_size: int, num_workers: int) -> torch.utils.data.DataLoader:
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -26,20 +26,18 @@ def dataloader():
         ]
     )
 
-    batch_size = 4
-
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                            shuffle=True, num_workers=2)
+                                            shuffle=True, num_workers=num_workers)
 
     testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                             download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                            shuffle=False, num_workers=2)
+                                            shuffle=False, num_workers=num_workers)
     return trainloader, testloader
 
-def loadershow(loader):
+def loadershow(loader: torch.utils.data.DataLoader):
     # get some random images from dataloader
     dataiter = iter(loader)
     images, labels = next(dataiter)
@@ -58,7 +56,9 @@ def loadershow(loader):
 
 def main():
     set_seed(1234)
-    trainloader, testloader = dataloader()
+    BATCH_SIZE = 4
+    NUM_WORKERS = 2
+    trainloader, testloader = dataloader(BATCH_SIZE, NUM_WORKERS)
     loadershow(trainloader)
 
 if __name__ == "__main__":
