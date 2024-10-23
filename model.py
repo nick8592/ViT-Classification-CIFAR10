@@ -53,15 +53,61 @@ class EmbedLayer(nn.Module):
         x = torch.cat((torch.repeat_interleave(self.cls_token, B, 0), x), dim=1) # (B, N, E) -> (B, N+1, E) -> (B, S, E) add classification token at the start of every sequence
         x = self.dropout(x)
         return x
+    
+class SelfAttention(nn.Module):
+    def __init__(self, embed_dim: int, n_attention_heads: int):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.n_attention_heads = n_attention_heads
+        self.head_embed_dim = embed_dim // n_attention_heads
 
+        self.queries = nn.Linear(self.embed_dim, self.head_embed_dim * self.n_attention_heads) # Quaries projection (learnable weight)
+        self.keys = nn.Linear(self.embed_dim, self.head_embed_dim * self.n_attention_heads) # Keys projection (learnable weight)
+        self.values = nn.Linear(self.embed_dim, self.head_embed_dim * self.n_attention_heads) # Values projection (learnable weight)
+        self.out_projection     = nn.Linear(self.head_embed_dim * self.n_attention_heads, self.embed_dim) # Out projection (learnable weight)
 
-def test(model: nn.Module, n_channels: int, embed_dim: int, image_size: int, patch_size: int):
+    def forward(self, x):
+        b, s, e = x.shape # in case fo self-attention Q, K, V are all equal to S
+
+        # Linear projection (learnable weight)
+        xq = self.queries(x).reshape(b, s, self.n_attention_heads, self.head_embed_dim) # (B, Q, E) -> (B, Q, (H*HE)) -> (B, Q, H, HE)
+        xq = xq.permute(0, 2, 1, 3) # (B, Q, H, HE) -> (B, H, Q, HE)
+        xk = self.keys(x).reshape(b, s, self.n_attention_heads, self.head_embed_dim) # (B, K, E) -> (B, K, (H*HE)) -> (B, K, H, HE)
+        xk = xk.permute(0, 2, 1, 3) # (B, K, H, HE) -> (B, H, K, HE)
+        xv = self.values(x).reshape(b, s, self.n_attention_heads, self.head_embed_dim) # (B, V, E) -> (B, V, (H*HE)) -> (B, V, H, HE)
+        xv = xv.permute(0, 2, 1, 3) # (B, V, H, HE) -> (B, H, V, HE)
+
+        # Computer Attention presoftmax values
+        xk = xk.permute(0, 1, 3, 2) # (B, H, K, HE) -> (B, H, HE, K) K^T
+        x_attention = torch.matmul(xq, xk) # (B, H, Q, HE) * (B, H, HE, K) -> (B, H, Q, K) dot product (Q*K^T)
+
+        x_attention /= float(self.head_embed_dim) ** 0.5 # scale presoftmax values for stability (Q*K^T/dk^0.5)
+
+        x_attention = torch.softmax(x_attention, dim=-1) # compute attention matrix (softmax(QK^T/dk^0.5))
+
+        x = torch.matmul(x_attention, xv) # (B, H, Q, K) * (B, H, V, HE) -> (B, H, Q, HE) dot product (softmax(QK^T/dk^0.5)V)
+
+        # # Format the output
+        x = x.permute(0, 2, 1, 3) # (B, H, Q, HE) -> (B, Q, H, HE)
+        x = x.reshape(b, s, e) # (B, Q, H, HE) -> (B, Q, (H*HE))
+
+        x = self.out_projection(x) # (B, Q, (H*HE)) -> (B, Q, E)
+        return x
+
+def test(n_channels: int, embed_dim: int, image_size: int, 
+         patch_size: int, n_attention_heads: int):
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     x = torch.rand((1, n_channels, image_size, image_size)).to(device)
-    ViT = model(n_channels, embed_dim, image_size, patch_size).to(device)
-    output = ViT(x)
+    embed = EmbedLayer(n_channels, embed_dim, image_size, patch_size).to(device)
+    atten = SelfAttention(embed_dim, n_attention_heads).to(device)
+
+    patches = embed(x)
+    atten_weight = atten(patches)
+
     print(f"Input shape: {x.shape}")
-    print(f"Output shape: {output.shape}")
+    print(f"Patches shape: {patches.shape}")
+    print(f"Attention shape: {atten_weight.shape}")
 
 if __name__ == "__main__":
-    test(EmbedLayer, 3, 32, 32, 4)
+    test(n_channels=3, embed_dim=32, image_size=32, 
+         patch_size=4, n_attention_heads=4)
