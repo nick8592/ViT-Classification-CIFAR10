@@ -151,7 +151,7 @@ def train(args, trainloader: DataLoader, model: nn.Module):
 
         # save model every 20 epochs
         if epoch % 20 == 0:
-            torch.save(model.state_dict(), f"./output/ViT_model_{epoch}.pt")
+            torch.save(model.state_dict(), f"./output/ViT_model_{epoch:0>3}.pt")
 
 def main():
     set_seed(1234)
