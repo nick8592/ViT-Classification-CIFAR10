@@ -26,7 +26,7 @@ def hyperparameters():
     parser = argparse.ArgumentParser()
     
     # Training Arguments
-    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--num_workers", type=int, default=2)
     parser.add_argument('-lr', "--learning_rate", type=float, default=5e-4)
     parser.add_argument("--warmup_epochs", type=int, default=10)
