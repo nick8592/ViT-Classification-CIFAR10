@@ -168,28 +168,70 @@ class Classifier(nn.Module):
         x = self.activation(x) # (B, E) -> (B, E)
         x = self.fc2(x) # (B, E) -> (B, CL)
         return x
+    
+class VisionTransformer(nn.Module):
+    """
+    Vision Transformer Class.
 
+    Parameters:
+        n_channels (int)        : Number of channels of the input image
+        embed_dim  (int)        : Embedding dimension
+        n_layers   (int)        : Number of encoder blocks to use
+        n_attention_heads (int) : Number of attention heads to use for performing MultiHeadAttention
+        forward_mul (float)     : Used to calculate dimension of the hidden fc layer = embed_dim * forward_mul
+        image_size (int)        : Image size
+        patch_size (int)        : Patch size
+        n_classes (int)         : Number of classes
+        dropout  (float)        : dropout value
+    
+    Input:
+        x (tensor): Image Tensor of shape B, C, IW, IH
 
-def test(n_channels: int, embed_dim: int, image_size: int, patch_size: int, 
-         n_attention_heads: int, forward_mul: int, n_classes: int):
+    Returns:
+        Tensor: Logits of shape B, CL
+    """ 
+    def __init__(self, n_channels: int, embed_dim: int, n_layers: int, 
+                 n_attention_heads: int, forward_mul: float, image_size: int, 
+                 patch_size: int, n_classes: int, dropout: float=0.1):
+        super().__init__()
+        self.embedding = EmbedLayer(n_channels, embed_dim, image_size, patch_size, dropout=dropout)
+        self.encoder = nn.ModuleList([Encoder(embed_dim, n_attention_heads, forward_mul, dropout=dropout) for _ in range(n_layers)])
+        self.norm = nn.LayerNorm(embed_dim) # final normalization layer after the last block
+        self.classifier = Classifier(embed_dim, n_classes)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        for block in self.encoder:
+            x = block(x)
+        x = self.norm(x)
+        x = self.classifier(x)
+        return x
+
+def test(n_channels: int, embed_dim: int, n_layers: int, 
+         n_attention_heads: int, forward_mul: float, image_size: int, 
+         patch_size: int, n_classes: int, dropout: float=0.1):
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     x = torch.rand((1, n_channels, image_size, image_size)).to(device)
     embed = EmbedLayer(n_channels, embed_dim, image_size, patch_size).to(device)
     # atten = SelfAttention(embed_dim, n_attention_heads).to(device)
     encoder = Encoder(embed_dim, n_attention_heads, forward_mul).to(device)
     classifier = Classifier(embed_dim, n_classes).to(device)
+    vit = VisionTransformer(n_channels, embed_dim, n_layers, n_attention_heads,
+                            forward_mul, image_size, patch_size, n_classes, dropout).to(device)
 
     patches = embed(x)
     # atten_weight = atten(patches)
     enc_out = encoder(patches)
     class_out = classifier(enc_out)
+    vit_out = vit(x)
 
     print(f"Input shape: {x.shape}")
     print(f"Patches shape: {patches.shape}")
     # print(f"Attention shape: {atten_weight.shape}")
     print(f"Encoder shape: {enc_out.shape}")
     print(f"Classifier shape: {class_out.shape}")
+    print(f"ViT shape: {vit_out.shape}")
 
 if __name__ == "__main__":
-    test(n_channels=3, embed_dim=32, image_size=32, patch_size=4, 
-         n_attention_heads=4, forward_mul=2, n_classes=10)
+    test(n_channels=3, embed_dim=32, n_layers=6, image_size=32, 
+         patch_size=4, n_attention_heads=4, forward_mul=2, n_classes=10)
