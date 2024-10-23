@@ -150,7 +150,7 @@ def train(args, trainloader: DataLoader, model: nn.Module):
         print(f"loss: {loss.item():.4f}  |  accuracy: {batch_accuracy.item():.4f}")
 
         # save model every 20 epochs
-        if epoch % 20 == 0 or epoch == len(args.epoches):
+        if epoch % 20 == 0 or epoch == len(args.epochs):
             torch.save(model.state_dict(), f"./output/ViT_model_{epoch:0>3}.pt")
 
 def main():
