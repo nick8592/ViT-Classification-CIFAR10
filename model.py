@@ -16,14 +16,26 @@ import torch.nn as nn
 # HE -> Head Embedding Dimension = E/H
 # CL -> Number of Classes
 
-#TODO Patch Embedding
 class EmbedLayer(nn.Module):
     """
-    Embedding an Image.
-    Conv2D breaks image into patches.
-    Add positional embedding vector into pathches embeddings.
-    Add classification token
-    """
+    Class for Embedding an Image.
+    It breaks image into patches and embeds patches using a Conv2D Operation (Works same as the Linear layer).
+    Next, a learnable positional embedding vector is added to all the patch embeddings to provide spatial position.
+    Finally, a classification token is added which is used to classify the image.
+
+    Parameters:
+        n_channels (int) : Number of channels of the input image
+        embed_dim  (int) : Embedding dimension
+        image_size (int) : Image size
+        patch_size (int) : Patch size
+        dropout  (float) : dropout value
+
+    Input:
+        x (tensor): Image Tensor of shape B, C, IW, IH
+    
+    Returns:
+        Tensor: Embedding of the image of shape B, S, E
+    """ 
     def __init__(self, n_channels: int, embed_dim: int, image_size: int, 
                  patch_size: int, dropout: float=0.0):
         super().__init__()
@@ -41,9 +53,7 @@ class EmbedLayer(nn.Module):
         x = torch.cat((torch.repeat_interleave(self.cls_token, B, 0), x), dim=1) # (B, N, E) -> (B, N+1, E) -> (B, S, E) add classification token at the start of every sequence
         x = self.dropout(x)
         return x
-#TODO Positional Encoding
-#TODO Transformer Encoder
-#TODO Classification Head
+
 
 def test(model: nn.Module, n_channels: int, embed_dim: int, image_size: int, patch_size: int):
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
