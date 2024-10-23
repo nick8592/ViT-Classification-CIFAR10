@@ -40,8 +40,8 @@ def hyperparameters():
     parser.add_argument("--n_classes", type=int, default=10)
 
     # ViT Arguments
-    parser.add_argument("--embed_dim", type=int, default=32)
-    parser.add_argument("--n_layers", type=int, default=2)
+    parser.add_argument("--embed_dim", type=int, default=64)
+    parser.add_argument("--n_layers", type=int, default=6)
     parser.add_argument("--n_attention_heads", type=int, default=4)
     parser.add_argument("--forward_mul", type=int, default=2)
     parser.add_argument("--dropout", type=int, default=0.1)
