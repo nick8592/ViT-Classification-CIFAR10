@@ -140,25 +140,56 @@ class Encoder(nn.Module):
         x = x + self.dropout1(self.attention(self.norm1(x))) # skip connection
         x = x + self.dropout2(self.fc2(self.activation(self.fc1(self.norm2(x))))) # skip connection
         return x
+    
+class Classifier(nn.Module):
+    """
+    Classification module of the Vision Transformer. Uses the embedding of the classification token to generate logits.
+
+    Parameters:
+        embed_dim (int) : Embedding dimension
+        n_classes (int) : Number of classes
+    
+    Input:
+        x (tensor): Tensor of shape B, S, E
+
+    Returns:
+        Tensor: Logits of shape B, CL
+    """ 
+    def __init__(self, embed_dim: int, n_classes: int):
+        super().__init__()
+        # new architectures skip fc1 and activations and directly apply fc2
+        self.fc1 = nn.Linear(embed_dim, embed_dim)
+        self.activation = nn.Tanh()
+        self.fc2 = nn.Linear(embed_dim, n_classes)
+    
+    def forward(self, x):
+        x = x[:, 0, :] # (B, S, E) -> (B, E) get CLS token
+        x = self.fc1(x) # (B, E) -> (B, E)
+        x = self.activation(x) # (B, E) -> (B, E)
+        x = self.fc2(x) # (B, E) -> (B, CL)
+        return x
 
 
-def test(n_channels: int, embed_dim: int, image_size: int, 
-         patch_size: int, n_attention_heads: int, forward_mul: int):
+def test(n_channels: int, embed_dim: int, image_size: int, patch_size: int, 
+         n_attention_heads: int, forward_mul: int, n_classes: int):
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     x = torch.rand((1, n_channels, image_size, image_size)).to(device)
     embed = EmbedLayer(n_channels, embed_dim, image_size, patch_size).to(device)
     # atten = SelfAttention(embed_dim, n_attention_heads).to(device)
     encoder = Encoder(embed_dim, n_attention_heads, forward_mul).to(device)
+    classifier = Classifier(embed_dim, n_classes).to(device)
 
     patches = embed(x)
     # atten_weight = atten(patches)
     enc_out = encoder(patches)
+    class_out = classifier(enc_out)
 
     print(f"Input shape: {x.shape}")
     print(f"Patches shape: {patches.shape}")
     # print(f"Attention shape: {atten_weight.shape}")
     print(f"Encoder shape: {enc_out.shape}")
+    print(f"Classifier shape: {class_out.shape}")
 
 if __name__ == "__main__":
-    test(n_channels=3, embed_dim=32, image_size=32, 
-         patch_size=4, n_attention_heads=4, forward_mul=2)
+    test(n_channels=3, embed_dim=32, image_size=32, patch_size=4, 
+         n_attention_heads=4, forward_mul=2, n_classes=10)
