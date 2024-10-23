@@ -36,6 +36,7 @@ def hyperparameters():
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
     parser.add_argument("--n_channels", type=int, default=3)
+    parser.add_argument("--patch_size", type=int, default=4)
     parser.add_argument("--n_classes", type=int, default=10)
 
     # ViT Arguments
@@ -43,7 +44,6 @@ def hyperparameters():
     parser.add_argument("--n_layers", type=int, default=2)
     parser.add_argument("--n_attention_heads", type=int, default=4)
     parser.add_argument("--forward_mul", type=int, default=2)
-    parser.add_argument("--patch_size", type=int, default=4)
     parser.add_argument("--dropout", type=int, default=0.1)
 
     args = parser.parse_args()
@@ -150,7 +150,7 @@ def train(args, trainloader: DataLoader, model: nn.Module):
         print(f"loss: {loss.item():.4f}  |  accuracy: {batch_accuracy.item():.4f}")
 
         # save model every 20 epochs
-        if epoch % 20 == 0:
+        if epoch % 20 == 0 or epoch == len(args.epoches):
             torch.save(model.state_dict(), f"./output/ViT_model_{epoch:0>3}.pt")
 
 def main():
