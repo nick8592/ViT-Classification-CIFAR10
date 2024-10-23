@@ -106,21 +106,59 @@ class SelfAttention(nn.Module):
 
         x = self.out_projection(x) # (B, Q, (H*HE)) -> (B, Q, E)
         return x
+    
+class Encoder(nn.Module):
+    """
+    Class for creating an encoder layer
+
+    Parameters:
+        embed_dim (int)         : Embedding dimension
+        n_attention_heads (int) : Number of attention heads to use for performing MultiHeadAttention
+        forward_mul (float)     : Used to calculate dimension of the hidden fc layer = embed_dim * forward_mul
+        dropout (float)         : Dropout parameter
+    
+    Input:
+        x (tensor): Tensor of shape B, S, E
+
+    Returns:
+        Tensor: Output of the encoder block of shape B, S, E
+    """
+    def __init__(self, embed_dim: int, n_attention_heads: int, 
+                 forward_mul: float, dropout: float=0.0):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(embed_dim)
+        self.attention = SelfAttention(embed_dim, n_attention_heads)
+        self.dropout1 = nn.Dropout(dropout)
+
+        self.norm2 = nn.LayerNorm(embed_dim)
+        self.fc1 = nn.Linear(embed_dim, embed_dim * forward_mul)
+        self.activation = nn.GELU()
+        self.fc2 = nn.Linear(embed_dim * forward_mul, embed_dim)
+        self.dropout2 = nn.Dropout(dropout)
+
+    def forward(self, x):
+        x = x + self.dropout1(self.attention(self.norm1(x))) # skip connection
+        x = x + self.dropout2(self.fc2(self.activation(self.fc1(self.norm2(x))))) # skip connection
+        return x
+
 
 def test(n_channels: int, embed_dim: int, image_size: int, 
-         patch_size: int, n_attention_heads: int):
+         patch_size: int, n_attention_heads: int, forward_mul: int):
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     x = torch.rand((1, n_channels, image_size, image_size)).to(device)
     embed = EmbedLayer(n_channels, embed_dim, image_size, patch_size).to(device)
-    atten = SelfAttention(embed_dim, n_attention_heads).to(device)
+    # atten = SelfAttention(embed_dim, n_attention_heads).to(device)
+    encoder = Encoder(embed_dim, n_attention_heads, forward_mul).to(device)
 
     patches = embed(x)
-    atten_weight = atten(patches)
+    # atten_weight = atten(patches)
+    enc_out = encoder(patches)
 
     print(f"Input shape: {x.shape}")
     print(f"Patches shape: {patches.shape}")
-    print(f"Attention shape: {atten_weight.shape}")
+    # print(f"Attention shape: {atten_weight.shape}")
+    print(f"Encoder shape: {enc_out.shape}")
 
 if __name__ == "__main__":
     test(n_channels=3, embed_dim=32, image_size=32, 
-         patch_size=4, n_attention_heads=4)
+         patch_size=4, n_attention_heads=4, forward_mul=2)
