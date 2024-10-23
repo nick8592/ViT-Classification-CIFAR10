@@ -55,6 +55,19 @@ class EmbedLayer(nn.Module):
         return x
     
 class SelfAttention(nn.Module):
+    """
+    Class for computing self attention Self-Attention
+
+    Parameters:
+        embed_dim (int)        : Embedding dimension
+        n_attention_heads (int): Number of attention heads to use for performing MultiHeadAttention
+    
+    Input:
+        x (tensor): Tensor of shape B, S, E
+
+    Returns:
+        Tensor: Output after Self-Attention Module of shape B, S, E
+    """ 
     def __init__(self, embed_dim: int, n_attention_heads: int):
         super().__init__()
         self.embed_dim = embed_dim
