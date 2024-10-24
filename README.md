@@ -43,7 +43,7 @@ python main.py --batch_size 128 --epochs 200 --learning_rate 0.0005
 
 ## Arguments
 
-The following arguments can be passed to the `main.py` script:
+The following arguments can be passed to the `train.py` script:
 
 - `--batch_size`: Batch size for training (default: 128)
 - `--num_workers`: Number of workers for data loading (default: 2)
@@ -55,7 +55,7 @@ The following arguments can be passed to the `main.py` script:
 - `--patch_size`: Size of the patches to divide the image into (default: 4)
 - `--n_classes`: Number of output classes (default: 10)
 
-For a full list of arguments, refer to the [main.py](./main.py) file.
+For a full list of arguments, refer to the [train.py](./train.py) file.
 
 ## Results
 
