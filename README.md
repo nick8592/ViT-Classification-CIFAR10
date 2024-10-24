@@ -38,7 +38,7 @@ pip install -r requirements.txt
 To train the Vision Transformer on the CIFAR-10 dataset, you can run the following command:
 
 ```bash
-python main.py --batch_size 128 --epochs 200 --learning_rate 0.0005
+python train.py --batch_size 128 --epochs 200 --learning_rate 0.0005
 ```
 
 ## Arguments
