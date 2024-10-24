@@ -60,17 +60,24 @@ def hyperparameters():
 
 # Load CIFAR-10 dataset
 def dataloader(args: argparse.ArgumentParser) -> DataLoader:
-    transform = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ]
-    )
+    train_transform = transforms.Compuse([
+        transforms.Resize([args.image_size, args.image_size]),
+        transforms.RandomCrop(args.image_size, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandAugment(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+    test_transform = transforms.Compose([
+        transforms.Resize([args.image_size, args.image_size]),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
 
     trainset = torchvision.datasets.CIFAR10(root=args.data_path, train=True,
-                                            download=True, transform=transform)
+                                            download=True, transform=train_transform)
     testset = torchvision.datasets.CIFAR10(root=args.data_path, train=False,
-                                            download=True, transform=transform)
+                                            download=True, transform=test_transform)
     
     if args.num_train_images != None:
         train_subset = Subset(trainset, torch.arange(args.num_train_images))
