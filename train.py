@@ -1,4 +1,5 @@
 import os
+import datetime
 import random
 import argparse
 import torch
@@ -271,9 +272,12 @@ def main():
     set_seed(1234)
     args = hyperparameters()
 
+    time = datetime.datetime.now()
+    format_time = str(time.strftime('%Y-%m-%d-%H-%M'))
+
     # Create required directories if they don't exist
-    os.makedirs(f'{args.model_path}',  exist_ok=True)
-    os.makedirs(f'{args.output_path}', exist_ok=True)
+    os.makedirs(f'{args.model_path}/{format_time}',  exist_ok=True)
+    os.makedirs(f'{args.output_path}/{format_time}', exist_ok=True)
 
     trainloader, testloader = dataloader(args)
 
