@@ -11,15 +11,17 @@ This repository contains an implementation of the **Vision Transformer (ViT)** f
 - Can run on CPU, CUDA, or MPS (for Apple Silicon).
 
 ## Table of Contents
-- [Features](#features)
-- [Table of Contents](#table-of-contents)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Arguments](#arguments)
-- [Results](#results)
-- [Model Architecture](#model-architecture)
-- [References](#references)
-- [License](#license)
+
+- [ViT-Classification-CIFAR10](#vit-classification-cifar10)
+  - [Features](#features)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Arguments](#arguments)
+  - [Model Architecture](#model-architecture)
+  - [Results](#results)
+  - [References](#references)
+  - [License](#license)
 
 ## Installation
 
@@ -55,10 +57,6 @@ The following arguments can be passed to the `train.py` script:
 
 For a full list of arguments, refer to the [train.py](./train.py) file.
 
-## Results
-
-The model can achieve competitive accuracy on the CIFAR-10 dataset after sufficient training epochs. During training, the progress can be monitored through the confusion matrix and accuracy score.
-
 ## Model Architecture
 
 The Vision Transformer model implemented in this repository consists of the following key components:
@@ -68,6 +66,13 @@ The Vision Transformer model implemented in this repository consists of the foll
 - **Classification Head**: A token added to the sequence for final classification.
 
 For details, check the implementation in [model.py](./model.py).
+
+## Results
+
+|          Pre-trained Model          |    Platform     | Test Accuracy | Test Loss |                             Hugging Face Link                              |
+| :---------------------------------: | :-------------: | :-----------: | :-------: | :------------------------------------------------------------------------: |
+| vit-classification-cifar10-colab-t4 | Google Colab T4 |    78.01%     |  0.6402   | [link](https://huggingface.co/nickpai/vit-classification-cifar10-colab-t4) |
+|  vit-classification-cifar10-mbp-m1  | M1 MacBook Pro  |    71.04%     |  0.8440   |  [link](https://huggingface.co/nickpai/vit-classification-cifar10-mbp-m1)  |
 
 ## References
 
