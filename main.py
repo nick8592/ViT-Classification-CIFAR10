@@ -5,7 +5,7 @@ import torch
 import torch.utils
 import torch.nn as nn
 from torch import optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
@@ -42,6 +42,8 @@ def hyperparameters():
     parser.add_argument("--patch_size", type=int, default=4)
     parser.add_argument("--n_classes", type=int, default=10)
     parser.add_argument("--data_path", type=str, default='./data')
+    parser.add_argument("--num_train_images", type=int, default=None)
+    parser.add_argument("--num_test_images", type=int, default=None)
 
     # ViT Arguments
     parser.add_argument("--embed_dim", type=int, default=64)
@@ -55,7 +57,7 @@ def hyperparameters():
     return args
 
 # Load CIFAR-10 dataset
-def dataloader(args: argparse.ArgumentParser, batch_size: int,  num_workers: int) -> DataLoader:
+def dataloader(args: argparse.ArgumentParser) -> DataLoader:
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -65,15 +67,28 @@ def dataloader(args: argparse.ArgumentParser, batch_size: int,  num_workers: int
 
     trainset = torchvision.datasets.CIFAR10(root=args.data_path, train=True,
                                             download=True, transform=transform)
-    trainloader = DataLoader(trainset, batch_size=batch_size,
-                             shuffle=True, num_workers=num_workers,
-                             pin_memory=True)
-
     testset = torchvision.datasets.CIFAR10(root=args.data_path, train=False,
                                             download=True, transform=transform)
-    testloader = DataLoader(testset, batch_size=batch_size,
-                            shuffle=False, num_workers=num_workers,
+    
+    if args.num_train_images != None:
+        train_subset = Subset(trainset, torch.arange(args.num_train_images))
+    else:
+        train_subset = trainset
+    
+    if args.num_test_images != None:
+        test_subset = Subset(testset, torch.arange(args.num_test_images))
+    else:
+        test_subset = testset
+    
+    trainloader = DataLoader(train_subset, batch_size=args.batch_size,
+                             shuffle=True, num_workers=args.num_workers,
+                             pin_memory=True)
+    testloader = DataLoader(test_subset, batch_size=args.batch_size,
+                            shuffle=False, num_workers=args.num_workers,
                             pin_memory=True)
+    
+    print(f"Train num: {len(train_subset)}\nTest num: {len(test_subset)}")
+
     return trainloader, testloader
 
 def loadershow(loader: DataLoader):
@@ -197,7 +212,7 @@ def test(args:argparse.ArgumentParser, testloader: DataLoader, model: nn.Module)
 
     for (x, y) in testloader:
         # put data to device
-        x, y = x.to(args.device)
+        x = x.to(args.device)
 
         # avoid capturing gradients in evaluation time for faster speed
         with torch.no_grad():
@@ -260,7 +275,7 @@ def main():
     os.makedirs(f'{args.model_path}',  exist_ok=True)
     os.makedirs(f'{args.output_path}', exist_ok=True)
 
-    trainloader, testloader = dataloader(args.batch_size, args.num_workers)
+    trainloader, testloader = dataloader(args)
 
     # loadershow(trainloader)
     model = VisionTransformer(args.n_channels, args.embed_dim, args.n_layers, 
