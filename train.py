@@ -60,7 +60,7 @@ def hyperparameters():
 
 # Load CIFAR-10 dataset
 def dataloader(args: argparse.ArgumentParser) -> DataLoader:
-    train_transform = transforms.Compuse([
+    train_transform = transforms.Compose([
         transforms.Resize([args.image_size, args.image_size]),
         transforms.RandomCrop(args.image_size, padding=4),
         transforms.RandomHorizontalFlip(),
