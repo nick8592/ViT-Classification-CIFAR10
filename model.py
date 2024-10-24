@@ -199,6 +199,8 @@ class VisionTransformer(nn.Module):
         self.norm = nn.LayerNorm(embed_dim) # final normalization layer after the last block
         self.classifier = Classifier(embed_dim, n_classes)
 
+        self.apply(vit_init_weights)
+
     def forward(self, x):
         x = self.embedding(x)
         for block in self.encoder:
@@ -206,6 +208,24 @@ class VisionTransformer(nn.Module):
         x = self.norm(x)
         x = self.classifier(x)
         return x
+    
+def vit_init_weights(m): 
+    """
+    function for initializing the weights of the Vision Transformer.
+    """    
+
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+        nn.init.trunc_normal_(m.weight, mean=0.0, std=0.02)
+        if m.bias is not None:
+            nn.init.constant_(m.bias, 0)
+
+    elif isinstance(m, nn.LayerNorm):
+        nn.init.constant_(m.weight, 1)
+        nn.init.constant_(m.bias, 0)
+
+    elif isinstance(m, EmbedLayer):
+        nn.init.trunc_normal_(m.cls_token, mean=0.0, std=0.02)
+        nn.init.trunc_normal_(m.pos_embedding, mean=0.0, std=0.02)
 
 def test(n_channels: int, embed_dim: int, n_layers: int, 
          n_attention_heads: int, forward_mul: float, image_size: int, 
