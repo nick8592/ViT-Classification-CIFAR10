@@ -1,3 +1,4 @@
+import os
 import random
 import argparse
 import torch
@@ -10,6 +11,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm.auto import tqdm
+from sklearn.metrics import confusion_matrix, accuracy_score
 from model import VisionTransformer
 
 # CIFAR-10 classes name
@@ -32,12 +34,14 @@ def hyperparameters():
     parser.add_argument("--warmup_epochs", type=int, default=10)
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
+    parser.add_argument("--output_path", type=str, default='./output')
 
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
     parser.add_argument("--n_channels", type=int, default=3)
     parser.add_argument("--patch_size", type=int, default=4)
     parser.add_argument("--n_classes", type=int, default=10)
+    parser.add_argument("--data_path", type=str, default='./data')
 
     # ViT Arguments
     parser.add_argument("--embed_dim", type=int, default=64)
@@ -45,12 +49,13 @@ def hyperparameters():
     parser.add_argument("--n_attention_heads", type=int, default=4)
     parser.add_argument("--forward_mul", type=int, default=2)
     parser.add_argument("--dropout", type=int, default=0.1)
+    parser.add_argument("--model_path", type=str, default='./model')
 
     args = parser.parse_args()
     return args
 
 # Load CIFAR-10 dataset
-def dataloader(batch_size: int,  num_workers: int) -> DataLoader:
+def dataloader(args: argparse.ArgumentParser, batch_size: int,  num_workers: int) -> DataLoader:
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -58,17 +63,17 @@ def dataloader(batch_size: int,  num_workers: int) -> DataLoader:
         ]
     )
 
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+    trainset = torchvision.datasets.CIFAR10(root=args.data_path, train=True,
                                             download=True, transform=transform)
     trainloader = DataLoader(trainset, batch_size=batch_size,
-                                            shuffle=True, num_workers=num_workers,
-                                            pin_memory=True)
+                             shuffle=True, num_workers=num_workers,
+                             pin_memory=True)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+    testset = torchvision.datasets.CIFAR10(root=args.data_path, train=False,
                                             download=True, transform=transform)
     testloader = DataLoader(testset, batch_size=batch_size,
-                                            shuffle=False, num_workers=num_workers,
-                                            pin_memory=True)
+                            shuffle=False, num_workers=num_workers,
+                            pin_memory=True)
     return trainloader, testloader
 
 def loadershow(loader: DataLoader):
@@ -88,8 +93,9 @@ def loadershow(loader: DataLoader):
     plt.imshow(np.transpose(grid_images, (1, 2, 0))) # (c, h, w) -> (h, w, c)
     plt.show()
 
-def train(args, trainloader: DataLoader, model: nn.Module):
-    len_trainloader = len(trainloader)
+def train(args: argparse.ArgumentParser, model: nn.Module,
+          trainloader: DataLoader, testloader: DataLoader) -> list:
+    iters_per_epoch = len(trainloader)
 
     optimizer = optim.AdamW(model.parameters(), args.learning_rate, weight_decay=1e-3)
 
@@ -105,6 +111,12 @@ def train(args, trainloader: DataLoader, model: nn.Module):
     
     # variable to capture best test accuracy
     best_acc = 0
+
+    # arrays to record training progression
+    train_losses     = []
+    test_losses      = []
+    train_accuracies = []
+    test_accuracies  = []
 
     # training loop
     for epoch in tqdm(range(args.epochs)):
@@ -140,22 +152,114 @@ def train(args, trainloader: DataLoader, model: nn.Module):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+            # Log training progress
+            if i % 50 == 0 or i == (iters_per_epoch - 1):
+                print(f'Ep: {epoch+1}/{args.epochs}\tIt: {i+1}/{iters_per_epoch}\tbatch_loss: {loss:.4f}\tbatch_accuracy: {batch_accuracy:.2%}')
         
+        # test testing set every epoch
+        test_loss, test_acc, _ = test(args, testloader, model)
+
+        # Capture best test accuracy
+        best_acc = max(test_acc, best_acc)
+        print(f"Best test acc: {best_acc:.2%}\n")
+
+        # save model
+        torch.save(model.state_dict(), f"{args.model_path}/ViT_model_{epoch:0>3}.pt")
+
         # update learning rate using schedulers
         if epoch < args.warmup_epochs:
             linear_warmup.step()
         else:
             cos_decay.step()
 
-        print(f"loss: {loss.item():.4f}  |  accuracy: {batch_accuracy.item():.4f}")
+        # Update training progression metric arrays
+        train_losses += [sum(train_epoch_loss)/iters_per_epoch]
+        test_losses += [test_loss]
+        train_accuracies += [sum(train_epoch_accuracy)/iters_per_epoch]
+        test_accuracies += [test_acc]
+    
+    return train_losses, train_accuracies, test_losses, test_accuracies
 
-        # save model every 20 epochs
-        if epoch % 20 == 0 or epoch == args.epochs:
-            torch.save(model.state_dict(), f"./output/ViT_model_{epoch:0>3}.pt")
+def test(args:argparse.ArgumentParser, testloader: DataLoader, model: nn.Module) -> list:
+    # set model to evaluation mode
+    model.eval()
+
+    # put model to device
+    model = model.to(args.device)
+
+    # loss function
+    loss_fn = nn.CrossEntropyLoss()
+
+    # arrays to record all labels and logits
+    all_labels = []
+    all_logits = []
+
+    for (x, y) in testloader:
+        # put data to device
+        x, y = x.to(args.device)
+
+        # avoid capturing gradients in evaluation time for faster speed
+        with torch.no_grad():
+            logits = model(x)
+
+        all_labels.append(y)
+        all_logits.append(logits.cpu())
+
+     # convert all captured variables to torch
+    all_labels = torch.cat(all_labels)
+    all_logits = torch.cat(all_logits)
+    all_pred = all_logits.max(1)[1]
+
+    # Compute loss, accuracy and confusion matrix
+    loss = loss_fn(all_logits, all_labels).item()
+    acc = accuracy_score(y_true=all_labels, y_pred=all_pred)
+    cm = confusion_matrix(y_true=all_labels, y_pred=all_pred, labels=range(args.n_classes))
+
+    print(f"Test acc: {acc:.2%}\tTest loss: {loss:.4f}\nTest Confusion Matrix:")
+    print(cm)
+
+    return loss, acc, cm
+
+def plot_graphs(args: argparse.ArgumentParser,
+                train_losses: list, train_accuracies: list, 
+                test_losses: list, test_accuracies: list):
+    # Plot graph of loss values
+    plt.plot(train_losses, color='b', label='Train')
+    plt.plot(test_losses, color='r', label='Test')
+
+    plt.ylabel('Loss', fontsize = 18)
+    plt.yticks(fontsize=16)
+    plt.xlabel('Epoch', fontsize = 18)
+    plt.xticks(fontsize=16)
+    plt.legend(fontsize=15, frameon=False)
+
+    # plt.show()  # Uncomment to display graph
+    plt.savefig((f'{args.output_path}/graph_loss.png'), bbox_inches='tight')
+    plt.close('all')
+
+    # Plot graph of accuracies
+    plt.plot(train_accuracies, color='b', label='Train')
+    plt.plot(test_accuracies, color='r', label='Test')
+
+    plt.ylabel('Accuracy', fontsize = 18)
+    plt.yticks(fontsize=16)
+    plt.xlabel('Epoch', fontsize = 18)
+    plt.xticks(fontsize=16)
+    plt.legend(fontsize=15, frameon=False)
+
+    # plt.show()  # Uncomment to display graph
+    plt.savefig((f'{args.output_path}/graph_accuracy.png'), bbox_inches='tight')
+    plt.close('all')
 
 def main():
     set_seed(1234)
     args = hyperparameters()
+
+    # Create required directories if they don't exist
+    os.makedirs(f'{args.model_path}',  exist_ok=True)
+    os.makedirs(f'{args.output_path}', exist_ok=True)
+
     trainloader, testloader = dataloader(args.batch_size, args.num_workers)
 
     # loadershow(trainloader)
@@ -164,7 +268,8 @@ def main():
                               args.patch_size, args.n_classes, args.dropout)
     
     # print(model)
-    train(args, trainloader, model)
+    train_losses, train_accuracies, test_losses, test_accuracies = train(args, model, trainloader, testloader)
+    plot_graphs(args, train_losses, train_accuracies, test_losses, test_accuracies)
 
 if __name__ == "__main__":
     main()
