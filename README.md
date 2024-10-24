@@ -11,17 +11,15 @@ This repository contains an implementation of the **Vision Transformer (ViT)** f
 - Can run on CPU, CUDA, or MPS (for Apple Silicon).
 
 ## Table of Contents
-
-- [ViT-Classification-CIFAR10](#vit-classification-cifar10)
-  - [Features](#features)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Arguments](#arguments)
-  - [Results](#results)
-  - [Model Architecture](#model-architecture)
-  - [References](#references)
-  - [License](#license)
+- [Features](#features)
+- [Table of Contents](#table-of-contents)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Arguments](#arguments)
+- [Results](#results)
+- [Model Architecture](#model-architecture)
+- [References](#references)
+- [License](#license)
 
 ## Installation
 
