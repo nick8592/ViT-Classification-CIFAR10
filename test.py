@@ -1,17 +1,13 @@
-import os
-import datetime
 import random
 import argparse
 import torch
 import torch.utils
 import torch.nn as nn
-from torch import optim
 from torch.utils.data import DataLoader, Subset
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm.auto import tqdm
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.metrics import ConfusionMatrixDisplay
 from model import VisionTransformer
@@ -36,6 +32,7 @@ def hyperparameters():
     parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
+    parser.add_argument("--eval_type", type=str, default="cifar", choices=['cifar', 'single'])
 
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
@@ -179,12 +176,6 @@ def test_single(args: argparse.ArgumentParser, image: torch.Tensor, model: nn.Mo
     
     return logit
 
-def evaluate_cifar(args: argparse.ArgumentParser, loader: DataLoader, model: nn.Module):
-    """
-    evaluate whole CIFAR 10000 test images
-    """
-    test(args, loader, model)
-
 def evaluate_single(args: argparse.ArgumentParser, loader: DataLoader, model: nn.Module):
     """
     evaluate single image in CIFAR test set
@@ -212,8 +203,10 @@ def main():
                               args.patch_size, args.n_classes, args.dropout)
     model.load_state_dict(torch.load(args.model_path, weights_only=True, map_location=args.device))
     
-    evaluate_cifar(args, testloader, model)
-    # evaluate_single(args, testloader, model)
+    if args.eval_type == "cifar":
+        test(args, testloader, model)
+    elif args.eval_type =='single':
+        evaluate_single(args, testloader, model)
 
 if __name__ == "__main__":
     main()
