@@ -8,6 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.metrics import ConfusionMatrixDisplay
 from model import VisionTransformer
@@ -32,7 +33,7 @@ def hyperparameters():
     parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
-    parser.add_argument("--eval_type", type=str, default="cifar", choices=['cifar', 'single-cifar', 'custom'])
+    parser.add_argument("--mode", type=str, default="cifar", choices=['cifar', 'single-cifar', 'custom'])
 
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
@@ -42,6 +43,7 @@ def hyperparameters():
     parser.add_argument("--data_path", type=str, default='./data')
     parser.add_argument("--num_test_images", type=int, default=None)
     parser.add_argument("--index", type=int, default=1)
+    parser.add_argument("--image_path", type=str, default=None)
 
     # ViT Arguments
     parser.add_argument("--embed_dim", type=int, default=128)
@@ -162,8 +164,8 @@ def test(args: argparse.ArgumentParser, testloader: DataLoader,
 
     return loss, acc, cm
 
-def test_single(args: argparse.ArgumentParser, image: torch.Tensor, 
-                label: torch.Tensor, model: nn.Module, show_img: bool=True):
+def test_single(args: argparse.ArgumentParser, model: nn.Module, image: torch.Tensor, 
+                label: torch.Tensor=None, show_img: bool=True):
     """
     test model with single image
     """
@@ -177,13 +179,15 @@ def test_single(args: argparse.ArgumentParser, image: torch.Tensor,
     with torch.no_grad():
         output = model(image)
 
-    label = label.numpy()
     output = output.max(1)[1].numpy()[0]
 
-    if label == output:
-        print(f"<Correct> {classes[label]}(label)\t{classes[output]}(output)\n")
-    else:
-        print(f"<Wrong> {classes[label]}(label)\t{classes[output]}(output)\n")
+    if label != None:
+        label = label.numpy()
+
+        if label == output:
+            print(f"<Correct> {classes[label]}(label)\t{classes[output]}(output)\n")
+        else:
+            print(f"<Wrong> {classes[label]}(label)\t{classes[output]}(output)\n")
 
     if show_img:
         show_single_image(image.squeeze(0), classes[output])
@@ -200,11 +204,21 @@ def main():
                               args.patch_size, args.n_classes, args.dropout)
     model.load_state_dict(torch.load(args.model_path, weights_only=True, map_location=args.device))
     
-    if args.eval_type == "cifar":
+    if args.mode == "cifar":
         test(args, testloader, model)
-    elif args.eval_type =='single-cifar':
+    elif args.mode == "single-cifar":
         image, label = load_single_image(args, testloader)
-        test_single(args, image.unsqueeze(0), label, model)
+        test_single(args, model, image.unsqueeze(0), label)
+    else:
+        assert args.image_path != None
+        image = Image.open(args.image_path)
+        transform = transforms.Compose([
+            transforms.Resize([args.image_size, args.image_size]),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        image = transform(image)
+        test_single(args, model, image.unsqueeze(0))
 
 if __name__ == "__main__":
     main()
