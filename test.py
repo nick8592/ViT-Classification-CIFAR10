@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm.auto import tqdm
 from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import ConfusionMatrixDisplay
 from model import VisionTransformer
 
 
@@ -114,7 +115,6 @@ def show_single_image(image:torch.Tensor, label: str):
     plt.title(label)
     plt.axis('off')
     plt.show()
-    
 
 def test(args: argparse.ArgumentParser, testloader: DataLoader, model: nn.Module) -> list:
     """
@@ -156,6 +156,10 @@ def test(args: argparse.ArgumentParser, testloader: DataLoader, model: nn.Module
 
     print(f"Test acc: {acc:.2%}\tTest loss: {loss:.4f}\nTest Confusion Matrix:")
     print(cm)
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot()
+    plt.show()
 
     return loss, acc, cm
 
@@ -208,7 +212,8 @@ def main():
                               args.patch_size, args.n_classes, args.dropout)
     model.load_state_dict(torch.load(args.model_path, weights_only=True, map_location=args.device))
     
-    evaluate_single(args, testloader, model)
+    evaluate_cifar(args, testloader, model)
+    # evaluate_single(args, testloader, model)
 
 if __name__ == "__main__":
     main()
