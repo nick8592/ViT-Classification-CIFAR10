@@ -34,6 +34,7 @@ def hyperparameters():
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
     parser.add_argument("--mode", type=str, default="cifar", choices=['cifar', 'single-cifar', 'custom'])
+    parser.add_argument("--no_image", default=False, action='store_true')
 
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
@@ -75,8 +76,6 @@ def dataloader(args: argparse.ArgumentParser) -> DataLoader:
     testloader = DataLoader(test_subset, batch_size=args.batch_size,
                             shuffle=False, num_workers=args.num_workers,
                             pin_memory=True)
-    
-    print(f"Test num: {len(test_subset)}")
 
     return testloader
 
@@ -115,8 +114,7 @@ def show_single_image(image: torch.Tensor, label: str):
     plt.axis('off')
     plt.show()
 
-def test(args: argparse.ArgumentParser, testloader: DataLoader, 
-         model: nn.Module, show_img: bool=True) -> list:
+def test(args: argparse.ArgumentParser, testloader: DataLoader, model: nn.Module) -> list:
     """
     test model with dataloader
     """
@@ -157,15 +155,15 @@ def test(args: argparse.ArgumentParser, testloader: DataLoader,
     print(f"Test acc: {acc:.2%}\tTest loss: {loss:.4f}\nTest Confusion Matrix:")
     print(cm)
 
-    if show_img:
+    if args.no_image == False:
         disp = ConfusionMatrixDisplay(confusion_matrix=cm)
         disp.plot()
         plt.show()
 
     return loss, acc, cm
 
-def test_single(args: argparse.ArgumentParser, model: nn.Module, image: torch.Tensor, 
-                label: torch.Tensor=None, show_img: bool=True):
+def test_single(args: argparse.ArgumentParser, model: nn.Module, 
+                image: torch.Tensor, label: torch.Tensor=None):
     """
     test model with single image
     """
@@ -183,13 +181,14 @@ def test_single(args: argparse.ArgumentParser, model: nn.Module, image: torch.Te
 
     if label != None:
         label = label.numpy()
-
         if label == output:
             print(f"<Correct> {classes[label]}(label)\t{classes[output]}(output)\n")
         else:
             print(f"<Wrong> {classes[label]}(label)\t{classes[output]}(output)\n")
+    else:
+        print(f"Output: {classes[output]}\n")
 
-    if show_img:
+    if args.no_image == False:
         show_single_image(image.squeeze(0), classes[output])
     
     return output    
@@ -197,16 +196,16 @@ def test_single(args: argparse.ArgumentParser, model: nn.Module, image: torch.Te
 def main():
     set_seed(1234)
     args = hyperparameters()
-    testloader = dataloader(args)
-
     model = VisionTransformer(args.n_channels, args.embed_dim, args.n_layers, 
                               args.n_attention_heads, args.forward_mul, args.image_size, 
                               args.patch_size, args.n_classes, args.dropout)
     model.load_state_dict(torch.load(args.model_path, weights_only=True, map_location=args.device))
     
     if args.mode == "cifar":
+        testloader = dataloader(args)
         test(args, testloader, model)
     elif args.mode == "single-cifar":
+        testloader = dataloader(args)
         image, label = load_single_image(args, testloader)
         test_single(args, model, image.unsqueeze(0), label)
     else:
