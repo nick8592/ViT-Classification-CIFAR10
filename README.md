@@ -40,6 +40,7 @@ To train the Vision Transformer on the CIFAR-10 dataset, you can run the followi
 ```bash
 python train.py --batch_size 128 --epochs 200 --learning_rate 0.0005
 ```
+
 To test the Vision Transformer on the CIFAR-10 dataset, single CIFAR image or custom single image, you can run the following command:
 
 ```bash
@@ -65,11 +66,12 @@ The following arguments can be passed to the `train.py` script:
 For a full list of arguments, refer to the [train.py](./train.py) file.
 
 The additional arguments can be passed to the `test.py` script:
+
 - `--mode`: Type of testing mode (default: cifar)
 - `--index`: Index of choosen image within the batches (default: 1)
 - `--image_path`: Path of custom image (default: None)
 - `--model_path`: Path of ViT model (default: model/vit-classification-cifar10-colab-t4/ViT_model_199.pt)
-- `--no_image`: Option of display image or not (default: False)
+- `--no_image`: Option of disable showing image (default: False)
 
 For a full list of arguments, refer to the [test.py](./test.py) file.
 
