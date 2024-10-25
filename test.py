@@ -32,7 +32,7 @@ def hyperparameters():
     parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
-    parser.add_argument("--eval_type", type=str, default="cifar", choices=['cifar', 'single'])
+    parser.add_argument("--eval_type", type=str, default="cifar", choices=['cifar', 'single-cifar', 'custom'])
 
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
@@ -106,14 +106,15 @@ def load_single_image(args: argparse.ArgumentParser, loader: DataLoader):
 
     return image, label
 
-def show_single_image(image:torch.Tensor, label: str):
+def show_single_image(image: torch.Tensor, label: str):
     image = (image / 2 + 0.5).numpy()
     plt.imshow(np.transpose(image, (1, 2, 0))) # (c, h, w) -> (h, w, c)
     plt.title(label)
     plt.axis('off')
     plt.show()
 
-def test(args: argparse.ArgumentParser, testloader: DataLoader, model: nn.Module) -> list:
+def test(args: argparse.ArgumentParser, testloader: DataLoader, 
+         model: nn.Module, show_img: bool=True) -> list:
     """
     test model with dataloader
     """
@@ -154,13 +155,15 @@ def test(args: argparse.ArgumentParser, testloader: DataLoader, model: nn.Module
     print(f"Test acc: {acc:.2%}\tTest loss: {loss:.4f}\nTest Confusion Matrix:")
     print(cm)
 
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    disp.plot()
-    plt.show()
+    if show_img:
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        disp.plot()
+        plt.show()
 
     return loss, acc, cm
 
-def test_single(args: argparse.ArgumentParser, image: torch.Tensor, model: nn.Module):
+def test_single(args: argparse.ArgumentParser, image: torch.Tensor, 
+                label: torch.Tensor, model: nn.Module, show_img: bool=True):
     """
     test model with single image
     """
@@ -172,26 +175,20 @@ def test_single(args: argparse.ArgumentParser, image: torch.Tensor, model: nn.Mo
     image = image.to('cpu')
 
     with torch.no_grad():
-        logit = model(image)
-    
-    return logit
-
-def evaluate_single(args: argparse.ArgumentParser, loader: DataLoader, model: nn.Module):
-    """
-    evaluate single image in CIFAR test set
-    """
-    image, label = load_single_image(args, loader)
-    output = test_single(args, image.unsqueeze(dim=0), model)
+        output = model(image)
 
     label = label.numpy()
     output = output.max(1)[1].numpy()[0]
 
     if label == output:
-        print(f"<Correct> {classes[label]}(label) {classes[output]}(output)")
+        print(f"<Correct> {classes[label]}(label)\t{classes[output]}(output)\n")
     else:
-        print(f"<Wrong> - {classes[label]}(label) {classes[output]}(output)")
+        print(f"<Wrong> {classes[label]}(label)\t{classes[output]}(output)\n")
 
-    show_single_image(image, classes[output])
+    if show_img:
+        show_single_image(image.squeeze(0), classes[output])
+    
+    return output    
 
 def main():
     set_seed(1234)
@@ -205,8 +202,9 @@ def main():
     
     if args.eval_type == "cifar":
         test(args, testloader, model)
-    elif args.eval_type =='single':
-        evaluate_single(args, testloader, model)
+    elif args.eval_type =='single-cifar':
+        image, label = load_single_image(args, testloader)
+        test_single(args, image.unsqueeze(0), label, model)
 
 if __name__ == "__main__":
     main()
