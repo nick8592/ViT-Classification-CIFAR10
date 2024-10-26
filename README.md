@@ -124,6 +124,8 @@ This implementation is inspired by the Vision Transformer paper and other open-s
 - [Step-by-Step Guide to Image Classification with Vision Transformers (ViT)](https://comsci.blog/posts/vit)
 - [Vision Transformers from Scratch (PyTorch): A step-by-step guide](https://medium.com/@brianpulfer/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c)
 - [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
+- [Exploring Explainability for Vision Transformers
+  ](https://jacobgil.github.io/deeplearning/vision-transformer-explainability)
 
 ## License
 
