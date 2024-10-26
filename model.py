@@ -105,7 +105,7 @@ class SelfAttention(nn.Module):
         x = x.reshape(b, s, e) # (B, Q, H, HE) -> (B, Q, (H*HE))
 
         x = self.out_projection(x) # (B, Q, (H*HE)) -> (B, Q, E)
-        return x
+        return x, x_attention
     
 class Encoder(nn.Module):
     """
@@ -137,9 +137,10 @@ class Encoder(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
 
     def forward(self, x):
-        x = x + self.dropout1(self.attention(self.norm1(x))) # skip connection
+        x, att_mat = self.attention(self.norm1(x))
+        x = x + self.dropout1(x) # skip connection
         x = x + self.dropout2(self.fc2(self.activation(self.fc1(self.norm2(x))))) # skip connection
-        return x
+        return x, att_mat
     
 class Classifier(nn.Module):
     """
@@ -203,11 +204,12 @@ class VisionTransformer(nn.Module):
 
     def forward(self, x):
         x = self.embedding(x)
-        for block in self.encoder:
-            x = block(x)
+        for i, block in enumerate(self.encoder):
+            x, att_mat = block(x)
+            att_mat_full = att_mat if i == 0 else torch.cat((att_mat_full, att_mat), dim=0)
         x = self.norm(x)
         x = self.classifier(x)
-        return x
+        return x, att_mat_full
     
 def vit_init_weights(m): 
     """
@@ -241,9 +243,9 @@ def test(n_channels: int, embed_dim: int, n_layers: int,
 
     patches = embed(x)
     # atten_weight = atten(patches)
-    enc_out = encoder(patches)
+    enc_out, att_mat = encoder(patches)
     class_out = classifier(enc_out)
-    vit_out = vit(x)
+    vit_out, att_mat_full = vit(x)
 
     print(f"Input shape: {x.shape}")
     print(f"Patches shape: {patches.shape}")
@@ -251,6 +253,8 @@ def test(n_channels: int, embed_dim: int, n_layers: int,
     print(f"Encoder shape: {enc_out.shape}")
     print(f"Classifier shape: {class_out.shape}")
     print(f"ViT shape: {vit_out.shape}")
+    print(f"Attention Matrix shape: {att_mat.shape}")
+    print(f"Attention Matrix Full shape: {att_mat_full.shape}")
 
 if __name__ == "__main__":
     test(n_channels=3, embed_dim=32, n_layers=6, image_size=32, 
