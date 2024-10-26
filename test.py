@@ -33,7 +33,7 @@ def hyperparameters():
     parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
-    parser.add_argument("--mode", type=str, default="cifar", choices=['cifar', 'single-cifar', 'custom'])
+    parser.add_argument("--mode", type=str, default="cifar", choices=['cifar', 'cifar-single', 'custom'])
     parser.add_argument("--no_image", default=False, action='store_true')
 
     # Data Arguments
@@ -97,16 +97,6 @@ def loadershow(loader: DataLoader):
     plt.axis('off')
     plt.show()
 
-def load_single_image(args: argparse.ArgumentParser, loader: DataLoader):
-    assert args.index < args.batch_size
-
-    dataiter = iter(loader)
-    images, labels = next(dataiter)
-    image = images[args.index]
-    label = labels[args.index]
-
-    return image, label
-
 def show_single_image(image: torch.Tensor, label: str):
     image = (image / 2 + 0.5).numpy()
     plt.imshow(np.transpose(image, (1, 2, 0))) # (c, h, w) -> (h, w, c)
@@ -163,7 +153,7 @@ def test(args: argparse.ArgumentParser, testloader: DataLoader, model: nn.Module
     return loss, acc, cm
 
 def test_single(args: argparse.ArgumentParser, model: nn.Module, 
-                image: torch.Tensor, label: torch.Tensor=None):
+                image: torch.Tensor, label: int=None):
     """
     test model with single image
     """
@@ -180,7 +170,6 @@ def test_single(args: argparse.ArgumentParser, model: nn.Module,
     output = output.max(1)[1].numpy()[0]
 
     if label != None:
-        label = label.numpy()
         if label == output:
             print(f"<Correct> {classes[label]}(label)\t{classes[output]}(output)\n")
         else:
@@ -201,21 +190,23 @@ def main():
                               args.patch_size, args.n_classes, args.dropout)
     model.load_state_dict(torch.load(args.model_path, weights_only=True, map_location=args.device))
     
+    transform = transforms.Compose([
+        transforms.Resize([args.image_size, args.image_size]),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
     if args.mode == "cifar":
         testloader = dataloader(args)
         test(args, testloader, model)
-    elif args.mode == "single-cifar":
-        testloader = dataloader(args)
-        image, label = load_single_image(args, testloader)
+    elif args.mode == "cifar-single":
+        testset = torchvision.datasets.CIFAR10(root=args.data_path, train=False, 
+                                               download=True, transform=transform)
+        image, label = testset.__getitem__(args.index)
         test_single(args, model, image.unsqueeze(0), label)
     else:
         assert args.image_path != None
         image = Image.open(args.image_path)
-        transform = transforms.Compose([
-            transforms.Resize([args.image_size, args.image_size]),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ])
         image = transform(image)
         test_single(args, model, image.unsqueeze(0))
 
