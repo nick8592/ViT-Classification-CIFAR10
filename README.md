@@ -110,6 +110,7 @@ For details, check the implementation in [model.py](./model.py).
 ├── LICENSE
 ├── README.md
 ├── requirements.txt
+├── visualize_atteniton_map.ipynb
 ├── model.py
 ├── test.py
 └── train.py
