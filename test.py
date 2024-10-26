@@ -52,7 +52,7 @@ def hyperparameters():
     parser.add_argument("--n_attention_heads", type=int, default=4)
     parser.add_argument("--forward_mul", type=int, default=2)
     parser.add_argument("--dropout", type=int, default=0.1)
-    parser.add_argument("--model_path", type=str, default='model/vit-classification-cifar10-colab-t4/ViT_model_199.pt')
+    parser.add_argument("--model_path", type=str, default='model/vit-layer6-32-cifar10/vit-layer6-32-cifar10-199.pt')
 
     args = parser.parse_args()
     return args
