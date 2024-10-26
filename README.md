@@ -87,10 +87,10 @@ For details, check the implementation in [model.py](./model.py).
 
 ## Results
 
-|   Pre-trained Model    | Platform | Test Accuracy | Test Loss |                       Hugging Face Link                       |
-| :--------------------: | :------: | :-----------: | :-------: | :-----------------------------------------------------------: |
-| vit-layer6-32-cifar10  | RTX 3090 |    78.31%     |  0.6296   | [link](https://huggingface.co/nickpai/vit-layer6-32-cifar10)  |
-| vit-layer12-32-cifar10 | RTX 3090 |    82.04%     |  0.5560   | [link](https://huggingface.co/nickpai/vit-layer12-32-cifar10) |
+|   Pre-trained Model    | Test Accuracy | Test Loss |                       Hugging Face Link                       |
+| :--------------------: | :-----------: | :-------: | :-----------------------------------------------------------: |
+| vit-layer6-32-cifar10  |    78.31%     |  0.6296   | [link](https://huggingface.co/nickpai/vit-layer6-32-cifar10)  |
+| vit-layer12-32-cifar10 |    82.04%     |  0.5560   | [link](https://huggingface.co/nickpai/vit-layer12-32-cifar10) |
 
 ```bash
 ./ViT-Classification-CIFAR10
