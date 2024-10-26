@@ -45,7 +45,7 @@ To test the Vision Transformer on the CIFAR-10 dataset, single CIFAR image or cu
 
 ```bash
 (CIFAR)        python test.py --mode cifar
-(single CIFAR) python test.py --mode single-cifar --index 5
+(CIFAR single) python test.py --mode cifar-single --index 5
 (custom)       python test.py --mode custom --image_path <path_to_image>
 ```
 
@@ -111,6 +111,7 @@ For details, check the implementation in [model.py](./model.py).
 ├── README.md
 ├── requirements.txt
 ├── model.py
+├── test.py
 └── train.py
 ```
 
@@ -122,6 +123,7 @@ This implementation is inspired by the Vision Transformer paper and other open-s
 - [PyTorch-Scratch-Vision-Transformer-ViT](https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT)
 - [Step-by-Step Guide to Image Classification with Vision Transformers (ViT)](https://comsci.blog/posts/vit)
 - [Vision Transformers from Scratch (PyTorch): A step-by-step guide](https://medium.com/@brianpulfer/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c)
+- [ViT-pytorch](https://github.com/jeonsworld/ViT-pytorch)
 
 ## License
 
