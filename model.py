@@ -137,8 +137,9 @@ class Encoder(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
 
     def forward(self, x):
+        res = x
         x, att_mat = self.attention(self.norm1(x))
-        x = x + self.dropout1(x) # skip connection
+        x = res + self.dropout1(x) # skip connection
         x = x + self.dropout2(self.fc2(self.activation(self.fc1(self.norm2(x))))) # skip connection
         return x, att_mat
     
