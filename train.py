@@ -161,7 +161,7 @@ def train(args: argparse.ArgumentParser, model: nn.Module,
             x, y = x.to(args.device), y.to(args.device)
 
             # get output logits from the model
-            logits = model(x)
+            logits, att_mat_full = model(x)
 
             # computer training loss
             loss = loss_fn(logits, y)
