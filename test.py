@@ -165,7 +165,7 @@ def test_single(args: argparse.ArgumentParser, model: nn.Module,
     image = image.to('cpu')
 
     with torch.no_grad():
-        output = model(image)
+        output, att_mat_full = model(image)
 
     output = output.max(1)[1].numpy()[0]
 
