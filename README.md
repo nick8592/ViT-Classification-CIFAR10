@@ -87,24 +87,24 @@ For details, check the implementation in [model.py](./model.py).
 
 ## Results
 
-|          Pre-trained Model          |    Platform     | Test Accuracy | Test Loss |                             Hugging Face Link                              |
-| :---------------------------------: | :-------------: | :-----------: | :-------: | :------------------------------------------------------------------------: |
-| vit-classification-cifar10-colab-t4 | Google Colab T4 |    78.01%     |  0.6402   | [link](https://huggingface.co/nickpai/vit-classification-cifar10-colab-t4) |
-|  vit-classification-cifar10-mbp-m1  | M1 MacBook Pro  |    71.04%     |  0.8440   |  [link](https://huggingface.co/nickpai/vit-classification-cifar10-mbp-m1)  |
+|   Pre-trained Model    | Platform | Test Accuracy | Test Loss |                       Hugging Face Link                       |
+| :--------------------: | :------: | :-----------: | :-------: | :-----------------------------------------------------------: |
+| vit-layer6-32-cifar10  | RTX 3090 |    78.31%     |  0.6296   | [link](https://huggingface.co/nickpai/vit-layer6-32-cifar10)  |
+| vit-layer12-32-cifar10 | RTX 3090 |    82.04%     |  0.5560   | [link](https://huggingface.co/nickpai/vit-layer12-32-cifar10) |
 
 ```bash
 ./ViT-Classification-CIFAR10
 ├── data
 ├── model
-│   ├── vit-classification-cifar10-colab-t4
-│   │   └── ViT_model_199.pt
-│   └── vit-classification-cifar10-mbp-m1
-│       └── ViT_model_199.pt
+│   ├── vit-layer6-32-cifar10
+│   │   └── vit-layer6-32-cifar10-199.pt
+│   └── vit-layer12-32-cifar10
+│       └── vit-layer12-32-cifar10-199.pt
 ├── output
-│   ├── cifar10-colab-t4
+│   ├── vit-layer6-32-cifar10
 │   │   ├── graph_accuracy.png
 │   │   └── graph_loss.png
-│   └── cifar10-mbp-m1
+│   └── vit-layer12-32-cifar10
 │       ├── graph_accuracy.png
 │       └── graph_loss.png
 ├── LICENSE
