@@ -1,6 +1,7 @@
 # ViT-Classification-CIFAR10
 
 This repository contains an implementation of the **Vision Transformer (ViT)** from scratch using PyTorch. The model is applied to the CIFAR-10 dataset for image classification. Vision Transformers divide an image into smaller patches and process them with transformer layers to extract features, leading to state-of-the-art performance on various vision tasks.
+![Attention Map Example 0](attention_map_gif/cifar-index-21.gif)
 
 ## Features
 
@@ -9,6 +10,7 @@ This repository contains an implementation of the **Vision Transformer (ViT)** f
 - Supports adjustable hyperparameters like patch size, learning rate, and more.
 - Includes learning rate warmup and weight initialization strategies.
 - Can run on CPU, CUDA, or MPS (for Apple Silicon).
+- Attention map visualization with GIFs.
 
 ## Table of Contents
 
@@ -20,6 +22,9 @@ This repository contains an implementation of the **Vision Transformer (ViT)** f
   - [Arguments](#arguments)
   - [Model Architecture](#model-architecture)
   - [Results](#results)
+  - [Attention Map Visualization](#attention-map-visualization)
+    - [Example 1](#example-1)
+    - [Example 2](#example-2)
   - [References](#references)
   - [License](#license)
 
@@ -95,6 +100,7 @@ For details, check the implementation in [model.py](./model.py).
 ```bash
 ./ViT-Classification-CIFAR10
 ├── data
+├── attention_map_gif
 ├── model
 │   ├── vit-layer6-32-cifar10
 │   │   └── vit-layer6-32-cifar10-199.pt
@@ -102,11 +108,7 @@ For details, check the implementation in [model.py](./model.py).
 │       └── vit-layer12-32-cifar10-199.pt
 ├── output
 │   ├── vit-layer6-32-cifar10
-│   │   ├── graph_accuracy.png
-│   │   └── graph_loss.png
 │   └── vit-layer12-32-cifar10
-│       ├── graph_accuracy.png
-│       └── graph_loss.png
 ├── LICENSE
 ├── README.md
 ├── requirements.txt
@@ -115,6 +117,22 @@ For details, check the implementation in [model.py](./model.py).
 ├── test.py
 └── train.py
 ```
+
+## Attention Map Visualization
+
+To better understand how the Vision Transformer (ViT) attends to different regions of the input image during classification, this repository includes example attention maps that show the model’s focus across transformer layers. The attention maps can be visualized as GIFs, which dynamically highlight how attention shifts through the layers and heads.
+
+Below are two example GIFs, showcasing attention maps for different images from the CIFAR-10 dataset:
+
+### Example 1
+
+![Attention Map Example 1](attention_map_gif/cifar-index-10.gif)
+
+### Example 2
+
+![Attention Map Example 2](attention_map_gif/cifar-index-13.gif)
+
+The GIFs demonstrate how ViT processes each patch in the image, showing which areas are more influential in the final classification. To create similar visualizations, use the `visualize_attention_map.ipynb` notebook provided in the repository.
 
 ## References
 
