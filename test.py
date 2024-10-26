@@ -30,7 +30,7 @@ def hyperparameters():
     # Test Arguments
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--num_workers", type=int, default=2)
-    parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
+    parser.add_argument("--device", type=str, default="cuda", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
     parser.add_argument("--mode", type=str, default="cifar", choices=['cifar', 'cifar-single', 'custom'])

@@ -58,7 +58,7 @@ The following arguments can be passed to the `train.py` script:
 - `--learning_rate`: Initial learning rate (default: 5e-4)
 - `--warmup_epochs`: Number of warmup epochs for learning rate (default: 10)
 - `--epochs`: Total number of training epochs (default: 200)
-- `--device`: Device to use for training, either "cpu", "cuda", or "mps" (default: "mps")
+- `--device`: Device to use for training, either "cpu", "cuda", or "mps" (default: "cuda")
 - `--image_size`: Size of the input image (default: 32)
 - `--patch_size`: Size of the patches to divide the image into (default: 4)
 - `--n_classes`: Number of output classes (default: 10)
