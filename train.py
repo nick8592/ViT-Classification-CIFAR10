@@ -34,7 +34,7 @@ def hyperparameters():
     parser.add_argument('-lr', "--learning_rate", type=float, default=5e-4)
     parser.add_argument("--warmup_epochs", type=int, default=10)
     parser.add_argument("--epochs", type=int, default=200)
-    parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
+    parser.add_argument("--device", type=str, default="cuda", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
     parser.add_argument("--folder_name", type=str, default=None)
