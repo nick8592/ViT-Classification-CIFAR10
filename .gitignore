@@ -3,4 +3,4 @@ data/
 __pycache__
 output/
 model/
-attention_map_image/
+attention_map_gif/
