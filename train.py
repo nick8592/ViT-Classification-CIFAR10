@@ -286,8 +286,8 @@ def main():
     time = datetime.datetime.now()
     args.timestamp = str(time.strftime('%Y-%m-%d-%H-%M'))
 
-    args.folder_name = f"vit-patch{args.patch_size}-embed{args.embed_dim}-head{args.n_attention_heads}-{args.image_size}-cifar10"
-    args.model_name = f"vit-patch{args.patch_size}-embed{args.embed_dim}-head{args.n_attention_heads}-{args.image_size}-cifar10"
+    args.folder_name = f"{args.timestamp}"
+    args.model_name = f"vit-layer{args.n_layers}-32-cifar10"
 
     # Create required directories if they don't exist
     os.makedirs(f'{args.model_path}/{args.folder_name}',  exist_ok=True)
