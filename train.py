@@ -37,6 +37,8 @@ def hyperparameters():
     parser.add_argument("--device", type=str, default="mps", choices=["cpu", "cuda", "mps"])
     parser.add_argument("--output_path", type=str, default='./output')
     parser.add_argument("--timestamp", type=str, default="1900-01-01-00-00")
+    parser.add_argument("--folder_name", type=str, default=None)
+    parser.add_argument("--model_name", type=str, default=None)
 
     # Data Arguments
     parser.add_argument("--image_size", type=int, default=32)
@@ -189,7 +191,8 @@ def train(args: argparse.ArgumentParser, model: nn.Module,
         print(f"Best test acc: {best_acc:.2%}\n")
 
         # save model
-        torch.save(model.state_dict(), f"{args.model_path}/{args.timestamp}/ViT_model_{epoch:0>3}.pt")
+        torch.save(model.state_dict(), 
+                   f"{args.model_path}/{args.folder_name}/{args.model_name}-{epoch:0>3}.pt")
 
         # update learning rate using schedulers
         if epoch < args.warmup_epochs:
@@ -259,7 +262,7 @@ def plot_graphs(args: argparse.ArgumentParser,
     plt.legend(fontsize=15, frameon=False)
 
     # plt.show()  # Uncomment to display graph
-    plt.savefig((f'{args.output_path}/{args.timestamp}/graph_loss.png'), bbox_inches='tight')
+    plt.savefig((f'{args.output_path}/{args.folder_name}/graph_loss.png'), bbox_inches='tight')
     plt.close('all')
 
     # Plot graph of accuracies
@@ -273,7 +276,7 @@ def plot_graphs(args: argparse.ArgumentParser,
     plt.legend(fontsize=15, frameon=False)
 
     # plt.show()  # Uncomment to display graph
-    plt.savefig((f'{args.output_path}/{args.timestamp}/graph_accuracy.png'), bbox_inches='tight')
+    plt.savefig((f'{args.output_path}/{args.folder_name}/graph_accuracy.png'), bbox_inches='tight')
     plt.close('all')
 
 def main():
@@ -283,9 +286,12 @@ def main():
     time = datetime.datetime.now()
     args.timestamp = str(time.strftime('%Y-%m-%d-%H-%M'))
 
+    args.folder_name = f"vit-patch{args.patch_size}-embed{args.embed_dim}-head{args.n_attention_heads}-{args.image_size}-cifar10"
+    args.model_name = f"vit-patch{args.patch_size}-embed{args.embed_dim}-head{args.n_attention_heads}-{args.image_size}-cifar10"
+
     # Create required directories if they don't exist
-    os.makedirs(f'{args.model_path}/{args.timestamp}',  exist_ok=True)
-    os.makedirs(f'{args.output_path}/{args.timestamp}', exist_ok=True)
+    os.makedirs(f'{args.model_path}/{args.folder_name}',  exist_ok=True)
+    os.makedirs(f'{args.output_path}/{args.folder_name}', exist_ok=True)
 
     trainloader, testloader = dataloader(args)
 
