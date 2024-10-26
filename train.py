@@ -225,7 +225,7 @@ def test(args:argparse.ArgumentParser, testloader: DataLoader, model: nn.Module)
 
         # avoid capturing gradients in evaluation time for faster speed
         with torch.no_grad():
-            logits = model(x)
+            logits, _ = model(x)
 
         all_labels.append(y)
         all_logits.append(logits.cpu())
