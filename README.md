@@ -25,6 +25,7 @@ This repository contains an implementation of the **Vision Transformer (ViT)** f
   - [Attention Map Visualization](#attention-map-visualization)
     - [Example 1](#example-1)
     - [Example 2](#example-2)
+  - [Further Reading](#further-reading)
   - [References](#references)
   - [License](#license)
 
@@ -133,6 +134,16 @@ Below are two example GIFs, showcasing attention maps for different images from 
 ![Attention Map Example 2](attention_map_gif/cifar-index-13.gif)
 
 The GIFs demonstrate how ViT processes each patch in the image, showing which areas are more influential in the final classification. To create similar visualizations, use the `visualize_attention_map.ipynb` notebook provided in the repository.
+
+## Further Reading
+
+For a deeper understanding of Vision Transformers and their applications in computer vision, check out my articles on Medium:
+
+- **[Understanding Vision Transformers: A Game Changer in Computer Vision](https://medium.com/@weichenpai/understanding-vision-transformers-a-game-changer-in-computer-vision-dd40980eb750)**  
+  Explore the fundamentals of Vision Transformers and their impact on the field of computer vision.
+
+- **[Self-Attention vs. Cross-Attention in Computer Vision](https://medium.com/@weichenpai/self-attention-vs-cross-attention-in-computer-vision-4623b6d4706f)**  
+  Delve into the differences between self-attention and cross-attention mechanisms and their significance in Vision Transformer architectures.
 
 ## References
 
