@@ -140,10 +140,9 @@ The GIFs demonstrate how ViT processes each patch in the image, showing which ar
 For a deeper understanding of Vision Transformers and their applications in computer vision, check out my articles on Medium:
 
 - **[Understanding Vision Transformers: A Game Changer in Computer Vision](https://medium.com/@weichenpai/understanding-vision-transformers-a-game-changer-in-computer-vision-dd40980eb750)**  
-  Explore the fundamentals of Vision Transformers and their impact on the field of computer vision.
+- **[Self-Attention vs. Cross-Attention in Computer Vision](https://medium.com/@weichenpai/self-attention-vs-cross-attention-in-computer-vision-4623b6d4706f)**
+- **[Attention in Computer Vision: Revolutionizing How Machines “See” Images](https://medium.com/@weichenpai/attention-in-computer-vision-revolutionizing-how-machines-see-images-8bef2f1fc986)**   
 
-- **[Self-Attention vs. Cross-Attention in Computer Vision](https://medium.com/@weichenpai/self-attention-vs-cross-attention-in-computer-vision-4623b6d4706f)**  
-  Delve into the differences between self-attention and cross-attention mechanisms and their significance in Vision Transformer architectures.
 
 ## References
 
